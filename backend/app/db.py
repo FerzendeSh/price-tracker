@@ -1,11 +1,9 @@
 import sqlite3
 
-# TODO create User model  
-
 DB_NAME = 'users.db'
 
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(DB_NAME, check_same_thread=False)
 
 def init_db():
     conn = get_connection()
@@ -13,13 +11,13 @@ def init_db():
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS users(
         id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        username text UNIQUE NOT NULL, 
-        email text UNIQUE NOT NULL, 
+        username TEXT UNIQUE NOT NULL, 
+        email TEXT UNIQUE NOT NULL, 
         hashed_password TEXT NOT NULL
     )''')
 
     conn.commit()
-
+    
     conn.close()
 
 
