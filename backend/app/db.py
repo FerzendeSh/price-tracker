@@ -44,3 +44,21 @@ def create_user(username : str, email : str, hashed_password : str):
     finally:
         if conn:
             conn.close()
+            
+def get_user_by_username(username : str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, hashed_password FROM users WHERE username = ?", (username,))
+    
+    row = cursor.fetchone()
+    conn.close()
+    
+    if not row:
+        return None
+    
+    return {
+        "id" : row[0],
+        "username" : row[1],
+        "email" : row[2],
+        "hashed_password" : row[3]
+    }
