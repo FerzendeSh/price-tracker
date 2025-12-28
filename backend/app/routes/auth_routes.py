@@ -1,20 +1,20 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from fastapi import APIRouter, HTTPException
 
 from app.db import create_user, get_user_by_username
-from app.auth import hash_password, verify_password
+from app.auth import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 class RegisterRequest(BaseModel):
-    username : str
-    email : str
+    username : str = Field(min_length=3, max_length=30)
+    email : EmailStr
     password : str = Field(min_length=8, max_length=72)
 
 class RegisterResponse(BaseModel):
     message: str
     username: str
-    email: str
+    email: EmailStr
     
 # Create the endpoint
 @router.post("/register", response_model=RegisterResponse, status_code=201)
@@ -38,7 +38,7 @@ def register_user(data : RegisterRequest):
 class LoginRequest(BaseModel):
     username : str
     password : str = Field(min_length=8, max_length=72)
-
+    
 class LoginResponse(BaseModel):
     access_token : str
     token_type : str
@@ -54,7 +54,7 @@ def user_login(data : LoginRequest):
     if not verify_password(data.password, user['hashed_password']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Placeholder replace with JWT
+
     return{
         "access_token" : "fake-token",
         "token_type" : "bearer"
