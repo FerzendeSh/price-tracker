@@ -9,7 +9,7 @@ from app.db import init_db
 async def lifespan(app: FastAPI):
     init_db()   # startup
     yield       # app runs
-    # shutdown (optional)
+
 
 
 app = FastAPI(lifespan=lifespan)
