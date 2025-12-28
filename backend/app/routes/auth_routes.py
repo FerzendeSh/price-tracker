@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.db import create_user, get_user_by_username
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
@@ -54,8 +54,21 @@ def user_login(data : LoginRequest):
     if not verify_password(data.password, user['hashed_password']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-
+    token = create_access_token(subject=user["username"])
     return{
-        "access_token" : "fake-token",
+        "access_token" : token,
         "token_type" : "bearer"
+    }
+    
+class MeResponse(BaseModel):
+    id : int
+    username : str
+    email : EmailStr
+    
+@router.get("/me", response_model=MeResponse)
+def me(current_user : dict = Depends(get_current_user)):
+    return {
+        "id": current_user["id"],
+        "username": current_user["username"],
+        "email": current_user["email"],
     }
