@@ -1,0 +1,21 @@
+name: price-tracker
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - fastapi
+      - uvicorn[standard]
+      - sqlalchemy>=2.0
+      - psycopg2-binary
+      - alembic
+      - passlib[bcrypt]
+      - bcrypt<4
+      - python-jose[cryptography]
+      - pydantic[email]
+      - python-dotenv
+      - requests
+      - beautifulsoup4
+      - apscheduler
+      - python-multipart
