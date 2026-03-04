@@ -30,11 +30,24 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+from dotenv import load_dotenv
+load_dotenv(str(Path(__file__).resolve().parents[1] / ".env"))
+
+import os
+from urllib.parse import quote_plus
 import app.models   # <-- THIS imports all tables
 from app.db.base import Base
 
-
 target_metadata = Base.metadata
+
+# Build DB URL from individual env vars (avoids configparser % issues)
+_user = os.getenv("DB_USER", "postgres")
+_pw = os.getenv("DB_PASS", "")
+_host = os.getenv("DB_HOST", "localhost")
+_port = os.getenv("DB_PORT", "5432")
+_name = os.getenv("DB_NAME", "real_time_price")
+_db_url = f"postgresql+psycopg2://{_user}:{quote_plus(_pw)}@{_host}:{_port}/{_name}"
+config.set_main_option("sqlalchemy.url", _db_url.replace('%', '%%'))
 
 
 

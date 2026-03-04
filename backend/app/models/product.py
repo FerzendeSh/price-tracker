@@ -1,4 +1,5 @@
-from sqlalchemy import Integer, String, ForeignKey, UniqueConstraint
+from decimal import Decimal
+from sqlalchemy import Integer, String, ForeignKey, UniqueConstraint, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
@@ -19,6 +20,9 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=True)
     url: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
+    target_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    last_alerted_price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     user = relationship("User", back_populates="products")
 

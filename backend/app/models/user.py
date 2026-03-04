@@ -1,5 +1,6 @@
-from sqlalchemy import Integer, String
+from sqlalchemy import Boolean, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.db.base import Base
 
 class User(Base):
@@ -9,9 +10,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    products = relationship(
-        "Product",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
+    # relationship: one user -> many products
+    products = relationship("Product", back_populates="user", cascade="all, delete-orphan")
