@@ -16,6 +16,10 @@ DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
     f"postgresql+psycopg2://{_DB_USER}:{quote_plus(_DB_PASS)}@{_DB_HOST}:{_DB_PORT}/{_DB_NAME}",
 )
+
+# Render provides postgres:// — SQLAlchemy needs postgresql+psycopg2://
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME_LATER")
 ALGORITHM: str = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))

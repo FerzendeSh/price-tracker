@@ -1,0 +1,55 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: connect this repo on Render and it auto-detects this file.
+
+databases:
+  - name: price-tracker-db
+    plan: free
+    databaseName: real_time_price
+    user: pricetracker
+
+services:
+  # ── Backend (FastAPI) ─────────────────────────────────────────
+  - type: web
+    name: price-tracker-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: price-tracker-db
+          property: connectionString
+        # Render gives postgres:// — SQLAlchemy needs postgresql://
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false               # set manually after deploy
+      - key: FRONTEND_URL
+        sync: false               # set to your frontend URL after deploy
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: PRICE_CHECK_HOUR
+        value: "8"
+      - key: PRICE_CHECK_MINUTE
+        value: "0"
+
+  # ── Frontend (Vue + Nginx) ────────────────────────────────────
+  - type: web
+    name: price-tracker-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      - key: BACKEND_URL
+        sync: false               # set to your backend service URL after deploy
