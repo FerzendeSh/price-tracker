@@ -3,34 +3,39 @@ from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 # ------------------------------------------------------------
-# Load .env only in local development (never on Render)
-# Render sets the env var RENDER=1 inside the runtime.
+# Environment mode
 # ------------------------------------------------------------
-if os.getenv("RENDER") is None:
-    load_dotenv()
+ENV = os.getenv("ENV", "local").lower()  # local | prod
+IS_PROD = ENV == "prod" or os.getenv("RENDER") is not None
+
+# Load .env only locally, and never override real env vars
+if not IS_PROD:
+    load_dotenv(override=False)
 
 # ------------------------------------------------------------
 # DATABASE_URL
 # ------------------------------------------------------------
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# If running on Render, DATABASE_URL must be provided by Render
-if os.getenv("RENDER") and not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is required on Render (set in Render env vars / blueprint).")
+# In production, DATABASE_URL must exist (never fall back to localhost)
+if IS_PROD and not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is required in production (Render). Set it in Render env vars / blueprint."
+    )
 
 # Local fallback: build from DB_* variables (for laptop/dev)
 if not DATABASE_URL:
-    _DB_USER = os.getenv("DB_USER", "postgres")
-    _DB_PASS = os.getenv("DB_PASS", "")  # don't hardcode secrets
-    _DB_HOST = os.getenv("DB_HOST", "localhost")
-    _DB_PORT = os.getenv("DB_PORT", "5432")
-    _DB_NAME = os.getenv("DB_NAME", "real_time_price")
+    DB_USER = os.getenv("DB_USER", "postgres")
+    DB_PASS = os.getenv("DB_PASS", "")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5432")
+    DB_NAME = os.getenv("DB_NAME", "real_time_price")
 
-    if not _DB_PASS:
+    if not DB_PASS:
         raise RuntimeError("DB_PASS is not set for local development.")
 
     DATABASE_URL = (
-        f"postgresql+psycopg2://{_DB_USER}:{quote_plus(_DB_PASS)}@{_DB_HOST}:{_DB_PORT}/{_DB_NAME}"
+        f"postgresql+psycopg2://{DB_USER}:{quote_plus(DB_PASS)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
 # Normalize scheme for SQLAlchemy + psycopg2 driver
@@ -38,6 +43,12 @@ if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+# Optional debug (set DEBUG_CONFIG=1 on Render temporarily)
+if os.getenv("DEBUG_CONFIG") == "1":
+    print("ENV =", ENV)
+    print("IS_PROD =", IS_PROD)
+    print("DATABASE_URL startswith =", DATABASE_URL.split("://", 1)[0])
 
 # ------------------------------------------------------------
 # Auth / Security
@@ -48,7 +59,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 
 
 # ------------------------------------------------------------
 # CORS
-# (Render: set CORS_ORIGINS to your deployed frontend URL)
 # ------------------------------------------------------------
 CORS_ORIGINS: list[str] = [
     origin.strip()
