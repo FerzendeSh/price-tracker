@@ -25,10 +25,19 @@ server {
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
 
-        # Render free tier cold-starts can take 30+ seconds
-        proxy_connect_timeout 60s;
-        proxy_read_timeout    60s;
-        proxy_send_timeout    60s;
+        # Render free tier cold-starts can take 30-60 seconds
+        proxy_connect_timeout 90s;
+        proxy_read_timeout    90s;
+        proxy_send_timeout    90s;
+
+        # Return proper JSON errors so the frontend can detect & retry
+        proxy_intercept_errors on;
+        error_page 502 503 504 = @backend_unavailable;
+    }
+
+    location @backend_unavailable {
+        default_type application/json;
+        return 503 '{"detail":"Backend is starting up — please retry in a moment."}';
     }
 
     # SPA: all routes fall back to index.html

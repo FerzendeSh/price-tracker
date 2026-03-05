@@ -3,6 +3,7 @@ import axios from "axios";
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/",
   headers: { "Content-Type": "application/json" },
+  timeout: 90000, // 90s — covers Render free-tier cold starts
 });
 
 // Attach JWT token to every request
