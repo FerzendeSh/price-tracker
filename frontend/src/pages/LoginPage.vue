@@ -42,7 +42,16 @@ async function handleLogin() {
     await auth.login(form.username, form.password);
     router.push("/");
   } catch (err) {
-    error.value = err.response?.data?.detail || "Login failed";
+    if (err.response) {
+      // Server responded with an error
+      const detail = err.response.data?.detail;
+      error.value = typeof detail === "string" ? detail : "Login failed — invalid request";
+    } else if (err.request) {
+      // Request sent but no response (backend unreachable / cold-starting)
+      error.value = "Cannot reach server — it may be starting up. Please wait 30 seconds and try again.";
+    } else {
+      error.value = "Login failed";
+    }
   } finally {
     loading.value = false;
   }

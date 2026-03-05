@@ -29,5 +29,5 @@ ENV PORT=80
 
 EXPOSE 80
 
-# Only substitute PORT and BACKEND_URL — leave nginx vars ($uri, $host, etc.) alone
-CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+# Extract hostname from BACKEND_URL, substitute all env vars, then start nginx
+CMD ["/bin/sh", "-c", "export BACKEND_HOST=$(echo \"$BACKEND_URL\" | sed -E 's|^https?://||' | sed 's|/.*||') && envsubst '${PORT} ${BACKEND_URL} ${BACKEND_HOST}' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
