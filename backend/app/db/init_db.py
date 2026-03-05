@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.auth import hash_password, verify_password
+from app.auth import hash_password
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ def seed_admin() -> None:
     try:
         admin = db.query(User).filter(User.username == DEFAULT_ADMIN_USERNAME).first()
         if admin:
-            # Ensure the admin flag and a known password are always set
+            # Ensure the admin flag is set (lightweight — no bcrypt)
             changed = False
             if not admin.is_admin:
                 admin.is_admin = True
@@ -31,10 +31,6 @@ def seed_admin() -> None:
             if not admin.email_verified:
                 admin.email_verified = True
                 changed = True
-            if not verify_password(DEFAULT_ADMIN_PASSWORD, admin.hashed_password):
-                admin.hashed_password = hash_password(DEFAULT_ADMIN_PASSWORD)
-                changed = True
-                logger.info("Admin password reset to default.")
             if changed:
                 db.commit()
             logger.info("Admin user ready: %s", admin.username)

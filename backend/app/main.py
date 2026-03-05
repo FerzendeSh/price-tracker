@@ -19,7 +19,9 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
-    seed_admin()
+    import threading
+    # Run seed in background so the health check (/) responds immediately
+    threading.Thread(target=seed_admin, daemon=True).start()
     start_scheduler()
     yield
     stop_scheduler()
