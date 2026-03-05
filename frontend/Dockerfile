@@ -18,14 +18,16 @@ FROM nginx:alpine
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy the template (envsubst will resolve BACKEND_URL at runtime)
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+# Copy the template (envsubst resolves PORT + BACKEND_URL at runtime)
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
 
 # Copy built frontend
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Default PORT for local docker-compose; Render overrides with its own
+ENV PORT=80
+
 EXPOSE 80
 
-# Nginx docker image auto-runs envsubst on /etc/nginx/templates/*.template
-# We just need to set BACKEND_URL as an env var
-CMD ["nginx", "-g", "daemon off;"]
+# Only substitute PORT and BACKEND_URL — leave nginx vars ($uri, $host, etc.) alone
+CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

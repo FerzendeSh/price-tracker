@@ -41,8 +41,7 @@ if DATABASE_URL.startswith("postgres://"):
 elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-# TEMP debug (remove later)
-print("✅ Using DATABASE_URL:", DATABASE_URL)
+# Validated ✓
 
 # ------------------------------------------------------------
 # Security / Auth

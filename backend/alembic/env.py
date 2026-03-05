@@ -72,7 +72,7 @@ elif db_url.startswith("postgresql://"):
 # escape % for configparser
 config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
 
-print("✅ Alembic using DB:", db_url)  # TEMP: remove after deploy is green
+# Validated ✓
 
 
 def run_migrations_offline() -> None:
