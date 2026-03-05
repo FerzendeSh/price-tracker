@@ -15,12 +15,20 @@ api.interceptors.request.use((config) => {
 });
 
 // On 401, clear token and redirect to login
+// BUT skip redirect for auth endpoints (login, register) so
+// the form can display the actual error message to the user.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      const url = error.config?.url || "";
+      const isAuthEndpoint =
+        url.includes("/auth/login") || url.includes("/auth/register");
+
+      if (!isAuthEndpoint) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
