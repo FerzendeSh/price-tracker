@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import app.db.models  # noqa: F401  — ensure models registered with Base
 from app.core.config import CORS_ORIGINS
+from app.db.init_db import seed_admin
 from app.routes.auth_routes import router as auth_router
 from app.routes.product_routes import router as product_router
 from app.routes.price_routes import router as price_router
@@ -18,6 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    seed_admin()
     start_scheduler()
     yield
     stop_scheduler()
