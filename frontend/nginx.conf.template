@@ -5,24 +5,27 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # SPA: all routes fall back to index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
+    # Public DNS resolvers (Render doesn't have Docker's 127.0.0.11)
+    resolver 8.8.8.8 8.8.4.4 1.1.1.1 valid=30s ipv6=off;
+    resolver_timeout 10s;
 
     # Proxy API requests to backend
-    # resolver is required so Nginx can resolve the backend hostname at runtime
-    resolver 127.0.0.11 8.8.8.8 1.1.1.1 valid=30s ipv6=off;
-
     location ~ ^/(auth|products|track|admin|currencies|prices)(/|$) {
-        # Using a variable forces Nginx to re-resolve DNS per request
         set $backend "${BACKEND_URL}";
         proxy_pass         $backend$request_uri;
         proxy_http_version 1.1;
-        proxy_set_header   Host              $host;
+
+        # SNI + Host header required for Render's HTTPS load balancer
+        proxy_ssl_server_name on;
+        proxy_set_header   Host              price-tracker-api.onrender.com;
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
+    }
+
+    # SPA: all routes fall back to index.html
+    location / {
+        try_files $uri $uri/ /index.html;
     }
 
     # Cache static assets
