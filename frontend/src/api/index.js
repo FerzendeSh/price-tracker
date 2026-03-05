@@ -1,5 +1,12 @@
 import axios from "axios";
 
+const MAX_RETRIES = 6;
+const RETRY_DELAY_MS = 10000; // 10 seconds between retries
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/",
   headers: { "Content-Type": "application/json" },
@@ -15,14 +22,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401, clear token and redirect to login
-// BUT skip redirect for auth endpoints (login, register) so
-// the form can display the actual error message to the user.
+// Global retry for 502/503/504 (Render cold-start)
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      const url = error.config?.url || "";
+  async (error) => {
+    const config = error.config;
+    const status = error.response?.status;
+
+    // Only retry on gateway errors, and don't retry forever
+    if (status && status >= 502 && status <= 504) {
+      config.__retryCount = config.__retryCount || 0;
+      if (config.__retryCount < MAX_RETRIES) {
+        config.__retryCount += 1;
+        await sleep(RETRY_DELAY_MS);
+        return api(config);
+      }
+    }
+
+    // 401 handling
+    if (status === 401) {
+      const url = config?.url || "";
       const isAuthEndpoint =
         url.includes("/auth/login") || url.includes("/auth/register");
 
@@ -31,6 +50,7 @@ api.interceptors.response.use(
         window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   }
 );
