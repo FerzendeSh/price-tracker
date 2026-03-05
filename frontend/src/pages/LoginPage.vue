@@ -43,11 +43,16 @@ async function handleLogin() {
     router.push("/");
   } catch (err) {
     if (err.response) {
-      // Server responded with an error
       const detail = err.response.data?.detail;
-      error.value = typeof detail === "string" ? detail : "Login failed — invalid request";
+      if (typeof detail === "string") {
+        error.value = detail;
+      } else if (Array.isArray(detail)) {
+        // Pydantic 422 validation errors — show the first message
+        error.value = detail.map((e) => e.msg).join("; ") || "Validation error";
+      } else {
+        error.value = `Login failed (${err.response.status})`;
+      }
     } else if (err.request) {
-      // Request sent but no response (backend unreachable / cold-starting)
       error.value = "Cannot reach server — it may be starting up. Please wait 30 seconds and try again.";
     } else {
       error.value = "Login failed";
