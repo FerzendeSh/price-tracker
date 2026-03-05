@@ -12,7 +12,7 @@ server {
 
     # Proxy API requests to backend
     location ~ ^/(auth|products|track|admin|currencies|prices)(/|$) {
-        proxy_pass         ${BACKEND_URL};
+        proxy_pass         ${BACKEND_URL}$request_uri;
         proxy_http_version 1.1;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
