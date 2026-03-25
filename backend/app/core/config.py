@@ -13,18 +13,12 @@ if not IS_PROD:
     load_dotenv(override=False)
 
 # ------------------------------------------------------------
-# DATABASE_URL (Render-safe)
+# DATABASE_URL (Render-safe + Docker-safe)
 # ------------------------------------------------------------
+# If DATABASE_URL is provided (Docker/Render/etc.), always use it.
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if IS_PROD:
-    if not DATABASE_URL:
-        raise RuntimeError(
-            "DATABASE_URL is missing in production. Set it on Render (price-tracker-api → Environment)."
-        )
-    if "localhost" in DATABASE_URL or "127.0.0.1" in DATABASE_URL:
-        raise RuntimeError(f"Invalid DATABASE_URL in production (points to localhost): {DATABASE_URL}")
-else:
+if not DATABASE_URL:
     DB_USER = os.getenv("DB_USER", "postgres")
     DB_PASS = os.getenv("DB_PASS", "")
     DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -34,6 +28,10 @@ else:
     if not DB_PASS:
         raise RuntimeError("DB_PASS is not set for local development.")
     DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{quote_plus(DB_PASS)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+if IS_PROD:
+    if "localhost" in DATABASE_URL or "127.0.0.1" in DATABASE_URL:
+        raise RuntimeError(f"Invalid DATABASE_URL in production (points to localhost): {DATABASE_URL}")
 
 # Normalize scheme for SQLAlchemy + psycopg2
 if DATABASE_URL.startswith("postgres://"):

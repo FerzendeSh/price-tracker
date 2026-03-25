@@ -5,8 +5,8 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    # Public DNS resolvers (Render doesn't have Docker's 127.0.0.11)
-    resolver 8.8.8.8 8.8.4.4 1.1.1.1 valid=30s ipv6=off;
+    # Support both Docker internal DNS and public DNS (Render/external hosts)
+    resolver 127.0.0.11 8.8.8.8 8.8.4.4 1.1.1.1 valid=30s ipv6=off;
     resolver_timeout 10s;
 
     # Proxy API requests to backend

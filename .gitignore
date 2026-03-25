@@ -1,14 +1,35 @@
+# Environment / secrets
+.env
+.env.*
+*.env
+
 # Python
 __pycache__/
 *.pyc
-.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
 # SQLite
 backend/users.db
 
 # Frontend
 node_modules/
+frontend/node_modules/
 dist/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / IDE
+.vscode/
+.idea/
 
 # OS
 .DS_Store
